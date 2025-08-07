@@ -107,7 +107,7 @@ services:
     environment:
       DATABASE_URL: postgresql://pokemon_user:${DB_PASSWORD}@postgres:5432/pokemon_todo
       LM_STUDIO_URL: ${LM_STUDIO_URL:-http://host.docker.internal:1234}
-      LM_STUDIO_MODEL: microsoft/DialoGPT-medium
+      LM_STUDIO_MODEL: google/gemma-3n-e4b
       ENVIRONMENT: development
       LOG_LEVEL: debug
     volumes:
@@ -230,7 +230,7 @@ DB_PASSWORD=pokemon_secure_password_2024
 
 # LM Studio
 LM_STUDIO_URL=http://host.docker.internal:1234
-LM_STUDIO_MODEL=microsoft/DialoGPT-medium
+LM_STUDIO_MODEL=google/gemma-3n-e4b
 
 # Application
 NODE_ENV=development
@@ -261,7 +261,7 @@ help:
 
 setup:
 	@cp .env.example .env
-	@echo "LM Studioを起動してください (ポート: 1234、microsoft/DialoGPT-mediumモデル)"
+	@echo "LM Studioを起動してください (ポート: 1234、google/gemma-3n-e4bモデル)"
 	@docker-compose build
 	@docker-compose up -d postgres
 	@sleep 5

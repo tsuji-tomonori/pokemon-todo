@@ -7,7 +7,7 @@
 - **フロントエンド**: React
 - **バックエンド**: FastAPI
 - **データベース**: PostgreSQL
-- **AI**: LM Studio (microsoft/DialoGPT-medium)
+- **AI**: LM Studio (google/gemma-3n-e4b)
 - **実行環境**: Docker Compose（ローカル開発）
 
 ## 3. 主要機能
@@ -39,7 +39,7 @@
 ### 3.4 AI機能
 - タスク内容から難易度を推定
 - わざの威力を1〜100で自動設定
-- **LM Studio API使用**: `microsoft/DialoGPT-medium`モデル
+- **LM Studio API使用**: `google/gemma-3n-e4b`モデル
 - **接続先**: `http://localhost:1234`（LM Studio標準ポート）
 
 ## 4. データモデル

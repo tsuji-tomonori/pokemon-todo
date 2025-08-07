@@ -122,7 +122,7 @@ Pokemon (1) ─── (*) Battle
 ```python
 class AIService:
     base_url = "http://host.docker.internal:1234"  # LM Studio標準ポート
-    model = "microsoft/DialoGPT-medium"  # 実在するモデル
+    model = "google/gemma-3n-e4b"  # 実在するモデル
 ```
 
 #### 威力計算プロンプト
@@ -200,7 +200,7 @@ CMD ["uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0"]
 ```env
 DATABASE_URL=postgresql+asyncpg://user:pass@postgres:5432/pokemon
 LM_STUDIO_URL=http://host.docker.internal:1234
-LM_STUDIO_MODEL=microsoft/DialoGPT-medium
+LM_STUDIO_MODEL=google/gemma-3n-e4b
 ENVIRONMENT=development
 ```
 
