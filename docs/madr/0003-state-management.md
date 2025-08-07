@@ -1,8 +1,13 @@
 # 状態管理戦略
 
-* Status: 提案
-* Deciders: 開発チーム
-* Date: 2025-08-07
+## ステータス
+
+承認済み
+
+## メタデータ
+
+* 決定者: 開発チーム
+* 日付: 2025-08-08
 
 ## Context and Problem Statement
 
@@ -134,17 +139,18 @@ const usePokemonStore = create<PokemonStore>()(
 ```typescript
 // stores/battleStore.ts
 interface BattleStore {
-  // Battle State
+  // Battle State（一方向攻撃型）
   isInBattle: boolean;
   playerPokemon: Pokemon | null;
   playerMoves: Move[];
   enemy: Enemy | null;
-  currentTurn: 'player' | 'enemy';
 
-  // Battle Progress
-  playerHP: number;
-  enemyHP: number;
+  // Battle Progress（シンプル構成）
+  enemyCurrentHP: number;
+  enemyMaxHP: number;
   totalDamage: number;
+  movesUsed: number;
+  battleStartTime: number;
 
   // Animation State
   animationQueue: BattleAnimation[];
@@ -178,10 +184,11 @@ const useBattleStore = create<BattleStore>()((set, get) => ({
     playerPokemon: pokemon,
     playerMoves: pokemon.moves.filter(m => !m.isCompleted),
     enemy,
-    playerHP: 100,
-    enemyHP: enemy.hp,
+    enemyCurrentHP: enemy.maxHP,
+    enemyMaxHP: enemy.maxHP,
     totalDamage: 0,
-    currentTurn: 'player'
+    movesUsed: 0,
+    battleStartTime: Date.now()
   }),
 
   selectMove: async (move) => {
@@ -200,11 +207,12 @@ const useBattleStore = create<BattleStore>()((set, get) => ({
     await get().processAnimationQueue();
 
     set((state) => ({
-      enemyHP: Math.max(0, state.enemyHP - damage),
-      totalDamage: state.totalDamage + damage
+      enemyCurrentHP: Math.max(0, state.enemyCurrentHP - damage),
+      totalDamage: state.totalDamage + damage,
+      movesUsed: state.movesUsed + 1
     }));
 
-    if (get().enemyHP <= 0) {
+    if (get().enemyCurrentHP <= 0) {
       get().endBattle(true);
     }
   },

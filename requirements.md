@@ -7,7 +7,7 @@
 - **フロントエンド**: React
 - **バックエンド**: FastAPI
 - **データベース**: PostgreSQL
-- **AI**: LM Studio (google/gemma-3n-e4b)
+- **AI**: LM Studio (microsoft/DialoGPT-medium)
 - **実行環境**: Docker Compose（ローカル開発）
 
 ## 3. 主要機能
@@ -24,9 +24,13 @@
   - 完了すると「わざを使った」扱い
 
 ### 3.2 バトルシステム
-- タスク完了（わざ使用）で敵にダメージ
-- わざの威力はタスク難易度に応じてAIが自動決定
-- 敵を倒すと経験値獲得
+**基本仕様**: シンプルな一方向攻撃型（ターン制ではない）
+
+- タスク完了（わざ使用）で敵に即座にダメージ
+- わざの威力はタスク難易度に応じてAIが自動決定（1-100）
+- 敵を倒すと経験値獲得してバトル終了
+- 敵は反撃しない（ゲーム性よりシンプルさを重視）
+- バトルは常に勝利で終わる（タスク完了の報酬システム）
 
 ### 3.3 成長システム
 - 経験値蓄積でポケモン（親タスク）がレベルアップ
@@ -35,7 +39,8 @@
 ### 3.4 AI機能
 - タスク内容から難易度を推定
 - わざの威力を1〜100で自動設定
-- LM Studio APIを使用
+- **LM Studio API使用**: `microsoft/DialoGPT-medium`モデル
+- **接続先**: `http://localhost:1234`（LM Studio標準ポート）
 
 ## 4. データモデル
 
@@ -61,10 +66,13 @@
 ### Battle（バトル記録）
 - id: UUID
 - pokemon_id: 使用ポケモン
-- enemy_hp: 敵のHP
-- total_damage: 総ダメージ
-- is_defeated: 撃破フラグ
+- enemy_name: 敵の名前
+- enemy_max_hp: 敵の最大HP
+- total_damage: 与えた総ダメージ
+- is_victory: 勝利フラグ（常にtrue）
 - experience_gained: 獲得経験値
+- moves_used: 使用したわざ数
+- battle_duration: バトル時間（秒）
 - created_at: 作成日時
 
 ## 5. API仕様（主要エンドポイント）
@@ -78,11 +86,21 @@
 ### わざ管理
 - `POST /api/pokemon/{pokemon_id}/moves` - わざ追加
 - `GET /api/pokemon/{pokemon_id}/moves` - わざ一覧取得
-- `PUT /api/moves/{id}/complete` - わざ完了（バトル実行）
+- `POST /api/moves/{id}/execute` - わざ実行（タスク完了＋バトル処理）
 - `DELETE /api/moves/{id}` - わざ削除
 
 ### AI連携
-- `POST /api/moves/{id}/calculate-power` - 威力自動計算
+- `POST /api/ai/calculate-power` - わざ威力自動計算
+  ```json
+  {
+    "task_description": "プレゼン資料作成",
+    "estimated_duration": "2時間"
+  }
+  ```
+
+### バトル管理
+- `GET /api/pokemon/{pokemon_id}/current-battle` - 現在のバトル状態取得
+- `POST /api/battles/{battle_id}/complete` - バトル完了処理
 
 ## 6. UI/UX要件
 
@@ -333,8 +351,9 @@
 
 ## 7. 技術的制約
 - ローカル環境での動作前提
-- LM Studioは事前起動必要（ポート11434）
+- LM Studioは事前起動必要（ポート1234、標準設定）
 - 簡素な実装優先（認証機能なし）
+- バトルは必ず勝利（失敗パターンなし）
 
 ## 8. 開発優先順位
 1. 基本的なCRUD機能

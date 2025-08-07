@@ -1,8 +1,13 @@
 # Docker Compose実装方針
 
-* ステータス: 提案中
+## ステータス
+
+承認済み
+
+## メタデータ
+
 * 決定者: 開発チーム
-* 日付: 2025-08-07
+* 日付: 2025-08-08
 * タグ: docker, infrastructure, development-environment
 
 ## コンテキストと問題提起
@@ -101,7 +106,8 @@ services:
     container_name: pokemon-todo-backend
     environment:
       DATABASE_URL: postgresql://pokemon_user:${DB_PASSWORD}@postgres:5432/pokemon_todo
-      LM_STUDIO_URL: ${LM_STUDIO_URL:-http://host.docker.internal:11434}
+      LM_STUDIO_URL: ${LM_STUDIO_URL:-http://host.docker.internal:1234}
+      LM_STUDIO_MODEL: microsoft/DialoGPT-medium
       ENVIRONMENT: development
       LOG_LEVEL: debug
     volumes:
@@ -223,7 +229,8 @@ EXPOSE 80
 DB_PASSWORD=pokemon_secure_password_2024
 
 # LM Studio
-LM_STUDIO_URL=http://host.docker.internal:11434
+LM_STUDIO_URL=http://host.docker.internal:1234
+LM_STUDIO_MODEL=microsoft/DialoGPT-medium
 
 # Application
 NODE_ENV=development
@@ -254,7 +261,7 @@ help:
 
 setup:
 	@cp .env.example .env
-	@echo "LM Studioを起動してください (ポート: 11434)"
+	@echo "LM Studioを起動してください (ポート: 1234、microsoft/DialoGPT-mediumモデル)"
 	@docker-compose build
 	@docker-compose up -d postgres
 	@sleep 5
@@ -291,7 +298,7 @@ test:
 │   ホストマシン    │
 │                 │
 │  LM Studio      │
-│  (port:11434)   │
+│  (port:1234)    │
 └────────┬────────┘
          │
     host.docker.internal

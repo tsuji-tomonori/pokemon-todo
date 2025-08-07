@@ -1,8 +1,13 @@
 # フロントエンドアーキテクチャ設計
 
-* Status: 提案
-* Deciders: 開発チーム
-* Date: 2025-08-07
+## ステータス
+
+承認済み
+
+## メタデータ
+
+* 決定者: 開発チーム
+* 日付: 2025-08-08
 
 ## Context and Problem Statement
 
@@ -57,6 +62,8 @@
 ## Implementation Details
 
 ### 1. コンポーネント設計
+
+詳細なコンポーネント構造は`project_structure.md`の「components/」セクションを参照。
 
 ```
 Atomic Design原則を採用:

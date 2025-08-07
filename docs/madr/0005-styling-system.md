@@ -1,12 +1,19 @@
 # スタイリングシステム設計
 
-* Status: 提案
-* Deciders: 開発チーム
-* Date: 2025-08-07
+## ステータス
+
+承認済み
+
+## メタデータ
+
+* 決定者: 開発チーム
+* 日付: 2025-08-08
 
 ## Context and Problem Statement
 
 ポケモン風TODOアプリにおいて、ネオモーフィズム×ピクセルアート×グラスモーフィズムという独特なビジュアルスタイルを、保守性を保ちながら実装する必要がある。ダーク/ライトモード対応と、ポケモンタイプ別のカラーバリエーションも考慮する。
+
+詳細なデザイン仕様は`requirements.md`の「6. UI/UX要件」を参照。
 
 ## Decision Drivers
 
@@ -58,45 +65,29 @@ module.exports = {
           // ... 省略
           900: '#7f1d1d',
         },
-        
-        // ポケモンタイプ別カラー
-        'type-normal': '#A8A878',
-        'type-fire': '#F08030',
-        'type-water': '#6890F0',
-        'type-electric': '#F8D030',
-        'type-grass': '#78C850',
-        'type-ice': '#98D8D8',
-        'type-fighting': '#C03028',
-        'type-poison': '#A040A0',
-        'type-ground': '#E0C068',
-        'type-flying': '#A890F0',
-        'type-psychic': '#F85888',
-        'type-bug': '#A8B820',
-        'type-rock': '#B8A038',
-        'type-ghost': '#705898',
-        'type-dragon': '#7038F8',
-        'type-dark': '#705848',
-        'type-steel': '#B8B8D0',
-        'type-fairy': '#EE99AC',
-        
+
+        // ポケモンタイプ別カラー（requirements.md参照）
+        // カラー値は requirements.md の「ポケモンタイプ別カラー」セクションを参照
+        ...TYPE_COLORS,
+
         // グラスモーフィズム用
         glass: {
           light: 'rgba(255, 255, 255, 0.7)',
           dark: 'rgba(30, 33, 40, 0.8)',
         },
       },
-      
+
       fontFamily: {
         pixel: ['DotGothic16', 'Press Start 2P', 'monospace'],
         sans: ['Noto Sans JP', 'sans-serif'],
       },
-      
+
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
       },
-      
+
       animation: {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-slow': 'pulse 3s infinite',
@@ -105,7 +96,7 @@ module.exports = {
         'float': 'float 3s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite',
       },
-      
+
       keyframes: {
         wiggle: {
           '0%, 100%': { transform: 'rotate(-3deg)' },
@@ -120,23 +111,23 @@ module.exports = {
           '50%': { opacity: 0.5 },
         },
       },
-      
+
       boxShadow: {
         // ネオモーフィズム（ライトモード）
         'neo-light': '-8px -8px 16px #FFFFFF, 8px 8px 16px #D1D5DB',
         'neo-light-inset': 'inset -8px -8px 16px #FFFFFF, inset 8px 8px 16px #D1D5DB',
-        
+
         // ネオモーフィズム（ダークモード）
         'neo-dark': '-8px -8px 16px #2A2D35, 8px 8px 16px #0A0B0F',
         'neo-dark-inset': 'inset -8px -8px 16px #2A2D35, inset 8px 8px 16px #0A0B0F',
-        
+
         // エレベーション
         'elevation-1': '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
         'elevation-2': '0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12)',
         'elevation-3': '0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10)',
         'elevation-4': '0 15px 25px rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.05)',
       },
-      
+
       backgroundImage: {
         // タイプ別グラデーション
         'type-gradient-fire': 'linear-gradient(135deg, #F08030 0%, #F5AC78 100%)',
@@ -144,7 +135,7 @@ module.exports = {
         'type-gradient-grass': 'linear-gradient(135deg, #78C850 0%, #A7DB8D 100%)',
         // ... 他のタイプ
       },
-      
+
       backdropBlur: {
         xs: '2px',
       },
@@ -154,7 +145,7 @@ module.exports = {
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
     require('tailwindcss-animate'),
-    
+
     // カスタムユーティリティ
     function({ addUtilities, theme }) {
       const newUtilities = {
@@ -257,13 +248,13 @@ module.exports = {
     @apply transform hover:scale-105 active:scale-95;
     @apply transition-all duration-150;
     image-rendering: pixelated;
-    box-shadow: 
+    box-shadow:
       0 4px 0 rgb(37, 99, 235),
       0 6px 4px rgba(0, 0, 0, 0.25);
   }
 
   .pixel-button:active {
-    box-shadow: 
+    box-shadow:
       0 2px 0 rgb(37, 99, 235),
       0 3px 2px rgba(0, 0, 0, 0.25);
     transform: translateY(2px) scale(0.95);
@@ -306,7 +297,7 @@ module.exports = {
     .motion-safe\:animate-none {
       animation: none !important;
     }
-    
+
     .motion-safe\:transition-none {
       transition: none !important;
     }
@@ -355,7 +346,7 @@ export const styles = {
     ),
     move: 'glass-card p-4 cursor-pointer hover:scale-105'
   },
-  
+
   button: {
     primary: 'pixel-button bg-blue-500 hover:bg-blue-600',
     secondary: 'pixel-button bg-gray-500 hover:bg-gray-600',
@@ -368,7 +359,7 @@ export const styles = {
       'transition-colors duration-200'
     ),
   },
-  
+
   input: {
     base: cn(
       'w-full px-4 py-2 rounded-lg',
@@ -381,7 +372,7 @@ export const styles = {
     error: 'border-red-500 dark:border-red-400',
     success: 'border-green-500 dark:border-green-400',
   },
-  
+
   animation: {
     fadeIn: 'animate-in fade-in duration-300',
     slideUp: 'animate-in slide-in-from-bottom-4 duration-400',
@@ -390,27 +381,9 @@ export const styles = {
   },
 };
 
-// タイプ別カラーマップ
-export const typeColors: Record<PokemonType, string> = {
-  normal: '#A8A878',
-  fire: '#F08030',
-  water: '#6890F0',
-  electric: '#F8D030',
-  grass: '#78C850',
-  ice: '#98D8D8',
-  fighting: '#C03028',
-  poison: '#A040A0',
-  ground: '#E0C068',
-  flying: '#A890F0',
-  psychic: '#F85888',
-  bug: '#A8B820',
-  rock: '#B8A038',
-  ghost: '#705898',
-  dragon: '#7038F8',
-  dark: '#705848',
-  steel: '#B8B8D0',
-  fairy: '#EE99AC',
-};
+// タイプ別カラーマップ（requirements.mdから取得）
+// カラー値の詳細は requirements.md の「ポケモンタイプ別カラー」セクションを参照
+import { TYPE_COLORS } from '../utils/constants';
 ```
 
 ### 4. レスポンシブデザイン
@@ -422,9 +395,9 @@ interface ResponsiveGridProps {
   variant?: 'cards' | 'list' | 'masonry';
 }
 
-export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({ 
-  children, 
-  variant = 'cards' 
+export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
+  children,
+  variant = 'cards'
 }) => {
   const gridClasses = {
     cards: cn(
@@ -463,7 +436,7 @@ export const useTheme = () => {
   useEffect(() => {
     const root = document.documentElement;
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    
+
     if (theme === 'system') {
       root.classList.toggle('dark', systemTheme === 'dark');
     } else {

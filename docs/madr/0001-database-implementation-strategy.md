@@ -1,8 +1,13 @@
 # データベース実装戦略
 
-- Status: accepted
-- Date: 2025-01-07
-- Deciders: Development Team
+## ステータス
+
+承認済み
+
+## メタデータ
+
+- 日付: 2025-08-08
+- 決定者: 開発チーム
 
 ## Context and Problem Statement
 
@@ -86,15 +91,18 @@ CREATE TABLE moves (
 );
 ```
 
-#### 3. battlesテーブル
+#### 3. battlesテーブル（統一仕様準拠）
 ```sql
 CREATE TABLE battles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pokemon_id UUID NOT NULL REFERENCES pokemon(id) ON DELETE CASCADE,
-    enemy_hp INTEGER NOT NULL,
+    enemy_name VARCHAR(100) NOT NULL,
+    enemy_max_hp INTEGER NOT NULL,
     total_damage INTEGER DEFAULT 0,
-    is_defeated BOOLEAN DEFAULT FALSE,
+    is_victory BOOLEAN DEFAULT TRUE,  -- 常にtrue（必ず勝利）
     experience_gained INTEGER DEFAULT 0,
+    moves_used INTEGER DEFAULT 0,
+    battle_duration INTEGER DEFAULT 0,  -- 秒単位
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 ```

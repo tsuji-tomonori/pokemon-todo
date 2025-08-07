@@ -4,6 +4,11 @@
 
 承認済み
 
+## メタデータ
+
+* 決定者: 開発チーム
+* 日付: 2025-08-08
+
 ## コンテキスト
 
 ポケモン風TODOアプリのバックエンドを実装するにあたり、以下の要件を満たす必要がある：
@@ -42,6 +47,8 @@ Database (PostgreSQL)
 
 ### 3. ディレクトリ構造
 
+詳細なディレクトリ構造は`project_structure.md`を参照。バックエンドは以下の基本構造に従う：
+
 ```
 backend/app/
 ├── api/v1/          # APIエンドポイント
@@ -72,7 +79,7 @@ Pokemon (1) ─── (*) Battle
 - 適切なHTTPメソッド使用
 - ステートレス
 
-#### エンドポイント構成
+#### エンドポイント構成（requirements.md準拠）
 ```
 /api/v1/
 ├── pokemon/
@@ -81,25 +88,29 @@ Pokemon (1) ─── (*) Battle
 │   ├── GET    /{id}       # 詳細取得
 │   ├── PUT    /{id}       # 更新
 │   ├── DELETE /{id}       # 削除
-│   └── POST   /{id}/moves # わざ追加
+│   ├── POST   /{id}/moves # わざ追加
+│   └── GET    /{id}/current-battle # 現在のバトル状態
 ├── moves/
 │   ├── GET    /{id}       # 詳細取得
 │   ├── PUT    /{id}       # 更新
 │   ├── DELETE /{id}       # 削除
-│   ├── PUT    /{id}/complete # 完了
-│   └── POST   /{id}/calculate-power # AI威力計算
+│   └── POST   /{id}/execute # わざ実行（タスク完了＋バトル）
+├── ai/
+│   └── POST   /calculate-power # AI威力計算
 └── battles/
-    └── GET    /current    # 現在のバトル状態
+    └── POST   /{id}/complete # バトル完了処理
 ```
 
 ### 6. サービス層設計
 
-#### 責務分離
+#### 責務分離（統一仕様準拠）
 - **PokemonService**: ポケモン管理、レベル計算
-- **MoveService**: わざ管理、完了処理
-- **BattleService**: バトル進行、ダメージ計算
+- **MoveService**: わざ管理、実行処理
+- **BattleService**: 一方向バトル処理、勝利処理
 - **AIService**: LM Studio連携、威力推定
 - **ExperienceService**: 経験値計算、進化判定
+
+**バトル仕様**: シンプルな一方向型（敵は反撃しない、常に勝利）
 
 #### トランザクション管理
 - サービス層でトランザクション境界を管理
@@ -110,8 +121,8 @@ Pokemon (1) ─── (*) Battle
 #### LM Studio接続
 ```python
 class AIService:
-    base_url = "http://host.docker.internal:11434"
-    model = "google/gemma-3n-e4b"
+    base_url = "http://host.docker.internal:1234"  # LM Studio標準ポート
+    model = "microsoft/DialoGPT-medium"  # 実在するモデル
 ```
 
 #### 威力計算プロンプト
@@ -188,7 +199,8 @@ CMD ["uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0"]
 #### 環境変数
 ```env
 DATABASE_URL=postgresql+asyncpg://user:pass@postgres:5432/pokemon
-LM_STUDIO_URL=http://host.docker.internal:11434
+LM_STUDIO_URL=http://host.docker.internal:1234
+LM_STUDIO_MODEL=microsoft/DialoGPT-medium
 ENVIRONMENT=development
 ```
 
