@@ -412,8 +412,51 @@ function PokemonDetailPage() {
 
   const handleCompleteMove = async (moveId: string) => {
     try {
+      const move = moves.find(m => m.id === moveId);
+      if (!move) return;
+      
       const completedMove = await movesApi.complete(moveId);
       setMoves(prev => prev.map(m => m.id === moveId ? completedMove : m));
+      
+      // Add experience to Pokemon when completing a task
+      if (pokemon && !move.is_completed) {
+        const experienceGain = Math.max(5, Math.floor(move.power / 10)); // 5-10 experience based on power
+        
+        // Update Pokemon experience locally
+        const newExperience = Math.min(100, pokemon.experience + experienceGain);
+        let newLevel = pokemon.level;
+        let newEvolutionStage = pokemon.evolution_stage;
+        
+        // Level up if experience reaches 100
+        if (newExperience >= 100) {
+          newLevel += 1;
+          // Evolution every 10 levels
+          if (newLevel % 10 === 0) {
+            newEvolutionStage = Math.min(3, newEvolutionStage + 1);
+          }
+        }
+        
+        // Call API to add experience
+        try {
+          const response = await fetch(`http://localhost:8000/api/v1/pokemon/${pokemon.id}/add-experience?experience=${experienceGain}`, {
+            method: 'POST',
+          });
+          
+          if (response.ok) {
+            const updatedPokemon = await response.json();
+            setPokemon(updatedPokemon);
+            
+            // Show success message with experience gained
+            setError(null);
+            setTimeout(() => {
+              setError(`🎉 Task completed! +${experienceGain} EXP gained!`);
+              setTimeout(() => setError(null), 3000);
+            }, 500);
+          }
+        } catch (expError) {
+          console.error('Error adding experience:', expError);
+        }
+      }
     } catch (err) {
       setError('Failed to complete move');
       console.error('Error completing move:', err);
