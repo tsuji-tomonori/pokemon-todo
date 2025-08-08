@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useParams, Link } from 'react-router-dom';
-import { Plus, ArrowLeft, Check, X } from '@phosphor-icons/react';
+import { Plus, ArrowLeft, Check, X, Robot } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
+import { useAI } from './hooks/useAI';
 
 // Type definitions
 interface Pokemon {
@@ -327,6 +328,9 @@ function PokemonDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  
+  // AI power calculation hook
+  const { isCalculating, result: aiResult, error: aiError, suggestPower, reset: resetAI } = useAI();
 
   useEffect(() => {
     if (id) {
@@ -376,11 +380,33 @@ function PokemonDetailPage() {
       });
       setMoves(prev => [...prev, newMove]);
       setShowAddForm(false);
+      resetAI();
       // Reset form
       (event.target as HTMLFormElement).reset();
     } catch (err) {
       setError('Failed to create move');
       console.error('Error creating move:', err);
+    }
+  };
+
+  const handleSuggestPower = async () => {
+    const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+    const descInput = document.querySelector('textarea[name="description"]') as HTMLTextAreaElement;
+    
+    if (!nameInput?.value) {
+      setError('Please enter a task name first');
+      return;
+    }
+
+    await suggestPower(nameInput.value, descInput?.value);
+  };
+
+  const applyAISuggestion = () => {
+    if (aiResult) {
+      const powerInput = document.querySelector('input[name="power"]') as HTMLInputElement;
+      if (powerInput) {
+        powerInput.value = aiResult.power.toString();
+      }
     }
   };
 
@@ -506,7 +532,18 @@ function PokemonDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level (1-100)</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Priority Level (1-100)</label>
+                  <button
+                    type="button"
+                    onClick={handleSuggestPower}
+                    disabled={isCalculating}
+                    className="flex items-center space-x-1 px-3 py-1 text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-md transition-colors disabled:opacity-50"
+                  >
+                    <Robot size={16} />
+                    <span>{isCalculating ? 'AI Thinking...' : 'AI Suggest'}</span>
+                  </button>
+                </div>
                 <input
                   type="number"
                   name="power"
@@ -517,6 +554,44 @@ function PokemonDetailPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              {/* AI Suggestion Result */}
+              {aiResult && (
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="text-sm font-semibold text-purple-800">
+                      🤖 AI Suggestion {aiResult.ai_generated ? '(AI Generated)' : '(Fallback)'}
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={applyAISuggestion}
+                      className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-purple-700">Power:</span>{' '}
+                      <span className="text-purple-900">{aiResult.power}</span>
+                      <span className="text-purple-600 ml-2">({aiResult.estimated_time})</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-purple-700">Reasoning:</span>{' '}
+                      <span className="text-purple-800">{aiResult.reasoning}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* AI Error */}
+              {aiError && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>AI Note:</strong> {aiError} Using fallback calculation.
+                  </p>
+                </div>
+              )}
               <div className="flex space-x-3">
                 <button
                   type="submit"
