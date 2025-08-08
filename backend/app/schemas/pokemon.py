@@ -1,8 +1,10 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 from uuid import UUID
-from app.schemas.move import Move
+
+if TYPE_CHECKING:
+    from app.schemas.move import Move
 
 class PokemonBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -26,4 +28,8 @@ class Pokemon(PokemonBase):
     updated_at: datetime
 
 class PokemonWithMoves(Pokemon):
-    moves: List[Move] = []
+    moves: List["Move"] = []
+
+# Resolve forward references
+from app.schemas.move import Move
+PokemonWithMoves.model_rebuild()

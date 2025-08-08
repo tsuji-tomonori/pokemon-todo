@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { Pokemon } from '@/types/pokemon';
-import { pokemonApi } from '@/api/pokemon';
+import { Pokemon } from '../types/pokemon';
+import { pokemonApi } from '../api/pokemon';
 
 interface PokemonStore {
   pokemon: Pokemon[];

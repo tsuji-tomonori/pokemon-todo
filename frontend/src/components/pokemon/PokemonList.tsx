@@ -1,4 +1,4 @@
-import { Pokemon } from '@/types/pokemon';
+import { Pokemon } from '../../types/pokemon';
 import PokemonCard from './PokemonCard';
 import { motion } from 'framer-motion';
 

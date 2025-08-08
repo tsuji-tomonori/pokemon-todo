@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { PokemonType } from '@/types/pokemon';
-import Button from '@/components/common/Button';
+import { PokemonType } from '../../types/pokemon';
+import Button from '../common/Button';
 
 interface PokemonFormProps {
   onSubmit: (name: string, type: PokemonType) => void;

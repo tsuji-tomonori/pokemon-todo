@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Plus, CircleNotch } from '@phosphor-icons/react';
-import { usePokemonStore } from '@/stores/pokemonStore';
-import PokemonList from '@/components/pokemon/PokemonList';
-import PokemonForm from '@/components/pokemon/PokemonForm';
-import Modal from '@/components/common/Modal';
-import { Pokemon, PokemonType } from '@/types/pokemon';
+import { usePokemonStore } from '../stores/pokemonStore';
+import PokemonList from '../components/pokemon/PokemonList';
+import PokemonForm from '../components/pokemon/PokemonForm';
+import Modal from '../components/common/Modal';
+import { Pokemon, PokemonType } from '../types/pokemon';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {

@@ -1,5 +1,5 @@
-import { Pokemon, PokemonType } from '@/types/pokemon';
-import Card from '@/components/common/Card';
+import { Pokemon, PokemonType } from '../../types/pokemon';
+import Card from '../common/Card';
 import { Trash, PencilSimple } from '@phosphor-icons/react';
 import { clsx } from 'clsx';
 
