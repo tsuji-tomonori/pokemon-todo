@@ -79,10 +79,36 @@ const movesApi = {
   },
 };
 
+// Type emoji mapping
+const getTypeEmoji = (type: string): string => {
+  const typeMap: { [key: string]: string } = {
+    fire: '🔥',
+    water: '💧',
+    grass: '🌿',
+    electric: '⚡',
+    psychic: '🔮',
+    ice: '❄️',
+    dragon: '🐲',
+    dark: '🌙',
+    fairy: '✨',
+    fighting: '👊',
+    poison: '☠️',
+    ground: '🌍',
+    flying: '🪶',
+    bug: '🐛',
+    rock: '🗿',
+    ghost: '👻',
+    steel: '⚙️',
+    normal: '⚪'
+  };
+  return typeMap[type] || '🎮';
+};
+
 function HomePage() {
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Fetch Pokemon on component mount
   useEffect(() => {
@@ -104,16 +130,22 @@ function HomePage() {
     }
   };
 
-  const handleCreatePokemon = async () => {
-    const name = prompt('Enter Pokemon name:');
-    if (!name) return;
+  const handleCreatePokemon = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get('name') as string;
+    const type = formData.get('type') as string;
 
-    const type = prompt('Enter Pokemon type (e.g., fire, water, grass):') || 'normal';
+    if (!name || !type) return;
     
     try {
       setError(null);
       const newPokemon = await pokemonApi.create({ name, type });
       setPokemon(prev => [...prev, newPokemon]);
+      setShowCreateForm(false);
+      // Reset form
+      (event.target as HTMLFormElement).reset();
       console.log('Created Pokemon:', newPokemon);
     } catch (err) {
       setError('Failed to create Pokemon');
@@ -149,7 +181,7 @@ function HomePage() {
               Create your first Pokemon to start managing tasks!
             </p>
             <button 
-              onClick={handleCreatePokemon}
+              onClick={() => setShowCreateForm(true)}
               className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-xl transform transition-all duration-200 hover:scale-105"
             >
               Create Pokemon
@@ -163,12 +195,12 @@ function HomePage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">{p.name}</h3>
-                    <span className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm">
-                      {p.type}
+                    <span className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm capitalize">
+                      {getTypeEmoji(p.type)} {p.type}
                     </span>
                   </div>
-                  <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-2xl">🎮</span>
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-200 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">{getTypeEmoji(p.type)}</span>
                   </div>
                 </div>
                 
@@ -197,9 +229,88 @@ function HomePage() {
           </div>
         )}
 
+        {/* Create Pokemon Modal */}
+        {showCreateForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl transform transition-all duration-300">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Create New Pokemon</h2>
+                <button
+                  onClick={() => setShowCreateForm(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X size={24} className="text-gray-600" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleCreatePokemon} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pokemon Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="e.g., Pikachu, Charizard"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pokemon Type *
+                  </label>
+                  <select
+                    name="type"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                  >
+                    <option value="">Select a type...</option>
+                    <option value="fire">🔥 Fire</option>
+                    <option value="water">💧 Water</option>
+                    <option value="grass">🌿 Grass</option>
+                    <option value="electric">⚡ Electric</option>
+                    <option value="psychic">🔮 Psychic</option>
+                    <option value="ice">❄️ Ice</option>
+                    <option value="dragon">🐲 Dragon</option>
+                    <option value="dark">🌙 Dark</option>
+                    <option value="fairy">✨ Fairy</option>
+                    <option value="fighting">👊 Fighting</option>
+                    <option value="poison">☠️ Poison</option>
+                    <option value="ground">🌍 Ground</option>
+                    <option value="flying">🪶 Flying</option>
+                    <option value="bug">🐛 Bug</option>
+                    <option value="rock">🗿 Rock</option>
+                    <option value="ghost">👻 Ghost</option>
+                    <option value="steel">⚙️ Steel</option>
+                    <option value="normal">⚪ Normal</option>
+                  </select>
+                </div>
+                
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transform transition-all duration-200 hover:scale-105 font-medium"
+                  >
+                    Create Pokemon
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateForm(false)}
+                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Floating Action Button */}
         <button 
-          onClick={handleCreatePokemon}
+          onClick={() => setShowCreateForm(true)}
           className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-110 flex items-center justify-center"
         >
           <Plus size={32} weight="bold" className="text-white" />
@@ -326,12 +437,12 @@ function PokemonDetailPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-800 mb-2">{pokemon.name}</h1>
-              <span className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm">
-                {pokemon.type}
+              <span className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm capitalize">
+                {getTypeEmoji(pokemon.type)} {pokemon.type}
               </span>
             </div>
-            <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
-              <span className="text-4xl">🎮</span>
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-200 rounded-full flex items-center justify-center">
+              <span className="text-4xl">{getTypeEmoji(pokemon.type)}</span>
             </div>
           </div>
           
