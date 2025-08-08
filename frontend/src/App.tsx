@@ -1,7 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, useParams, Link } from 'react-router-dom';
 import { Plus, ArrowLeft, Check, X, Robot } from '@phosphor-icons/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAI } from './hooks/useAI';
+import { useUIStore } from './stores/uiStore';
+import { useKeyboardNavigation, useFocusTrap } from './hooks/useKeyboardNavigation';
+import ThemeToggle from './components/common/ThemeToggle';
 
 // Type definitions
 interface Pokemon {
@@ -110,6 +113,21 @@ function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const { isDarkMode } = useUIStore();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard navigation for modal
+  useKeyboardNavigation({
+    onEscape: () => {
+      if (showCreateForm) {
+        setShowCreateForm(false);
+      }
+    },
+    enabled: showCreateForm,
+  });
+
+  // Focus trap for modal
+  useFocusTrap(modalRef, { enabled: showCreateForm });
 
   // Fetch Pokemon on component mount
   useEffect(() => {
@@ -155,73 +173,95 @@ function HomePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 font-pixel mb-2">Pokemon TODO</h1>
-        <p className="text-gray-600">Manage your tasks with Pokemon!</p>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <header className="mb-6 sm:mb-8" role="banner">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-gray-100 font-pixel mb-2">Pokemon TODO</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Manage your tasks with Pokemon!</p>
+          </div>
+          <ThemeToggle />
+        </div>
       </header>
 
-      <main>
+      <main role="main">
         {/* Error display */}
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg">
-            <p className="text-red-700">{error}</p>
+          <div 
+            className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg" 
+            role="alert"
+            aria-live="polite"
+          >
+            <p className="text-red-700 dark:text-red-400">{error}</p>
           </div>
         )}
 
         {/* Loading state */}
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="flex justify-center items-center py-12" aria-live="polite">
+            <div 
+              className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
+              role="status"
+              aria-label="Loading Pokemon"
+            ></div>
+            <span className="sr-only">Loading Pokemon...</span>
           </div>
         ) : pokemon.length === 0 ? (
           /* No Pokemon state */
-          <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
-            <h2 className="text-xl font-semibold mb-4">No Pokemon yet</h2>
-            <p className="text-gray-600 mb-4">
+          <div className="card mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">No Pokemon yet</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Create your first Pokemon to start managing tasks!
             </p>
             <button 
               onClick={() => setShowCreateForm(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-xl transform transition-all duration-200 hover:scale-105"
+              className="btn-primary"
             >
               Create Pokemon
             </button>
           </div>
         ) : (
           /* Pokemon list */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-8"
+            role="grid"
+            aria-label="Pokemon collection"
+          >
             {pokemon.map((p) => (
-              <div key={p.id} className="bg-white rounded-2xl p-6 shadow-lg hover:scale-105 transition-transform duration-200">
+              <div key={p.id} className="card" role="gridcell" tabIndex={0}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">{p.name}</h3>
-                    <span className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm capitalize">
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">{p.name}</h3>
+                    <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm capitalize text-gray-700 dark:text-gray-300">
                       {getTypeEmoji(p.type)} {p.type}
                     </span>
                   </div>
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-200 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-200 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center">
                     <span className="text-3xl">{getTypeEmoji(p.type)}</span>
                   </div>
                 </div>
                 
                 <div className="mb-4">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-700">Level {p.level}</span>
-                    <span className="text-sm text-gray-500">Stage {p.evolution_stage}</span>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Level {p.level}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Stage {p.evolution_stage}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="progress mb-1">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300"
+                      className="progress-fill"
                       style={{ width: `${p.experience}%` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500">{p.experience.toFixed(0)}/100 EXP</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{p.experience.toFixed(0)}/100 EXP</span>
+                    {p.experience >= 100 && <span className="text-xs text-green-500 font-semibold">MAX!</span>}
+                  </div>
                 </div>
 
                 <Link 
                   to={`/pokemon/${p.id}`}
-                  className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700 block text-center"
+                  className="block w-full text-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+                  aria-label={`View details for ${p.name}, a ${p.type} type Pokemon at level ${p.level}`}
                 >
                   View Details
                 </Link>
@@ -232,40 +272,58 @@ function HomePage() {
 
         {/* Create Pokemon Modal */}
         {showCreateForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl transform transition-all duration-300">
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            role="dialog" 
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowCreateForm(false);
+              }
+            }}
+          >
+            <div ref={modalRef} className="card w-full max-w-sm sm:max-w-md">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Create New Pokemon</h2>
+                <h2 id="modal-title" className="text-2xl font-bold text-gray-800 dark:text-gray-100">Create New Pokemon</h2>
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                  aria-label="Close modal"
                 >
-                  <X size={24} className="text-gray-600" />
+                  <X size={24} className="text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
               
               <form onSubmit={handleCreatePokemon} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="pokemon-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Pokemon Name *
                   </label>
                   <input
                     type="text"
+                    id="pokemon-name"
                     name="name"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="input"
                     placeholder="e.g., Pikachu, Charizard"
+                    aria-describedby="pokemon-name-help"
                   />
+                  <div id="pokemon-name-help" className="sr-only">
+                    Enter the name of your Pokemon
+                  </div>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="pokemon-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Pokemon Type *
                   </label>
                   <select
+                    id="pokemon-type"
                     name="type"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                    className="input"
+                    aria-describedby="pokemon-type-help"
                   >
                     <option value="">Select a type...</option>
                     <option value="fire">🔥 Fire</option>
@@ -287,19 +345,22 @@ function HomePage() {
                     <option value="steel">⚙️ Steel</option>
                     <option value="normal">⚪ Normal</option>
                   </select>
+                  <div id="pokemon-type-help" className="sr-only">
+                    Choose the type that best represents your Pokemon
+                  </div>
                 </div>
                 
-                <div className="flex space-x-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transform transition-all duration-200 hover:scale-105 font-medium"
+                    className="flex-1 btn-primary"
                   >
                     Create Pokemon
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+                    className="btn-secondary flex-1 sm:flex-initial"
                   >
                     Cancel
                   </button>
@@ -312,9 +373,9 @@ function HomePage() {
         {/* Floating Action Button */}
         <button 
           onClick={() => setShowCreateForm(true)}
-          className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-110 flex items-center justify-center"
+          className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 bg-blue-500 hover:bg-blue-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50"
         >
-          <Plus size={32} weight="bold" className="text-white" />
+          <Plus size={28} weight="bold" className="text-white sm:w-8 sm:h-8" />
         </button>
       </main>
     </div>
@@ -472,8 +533,8 @@ function PokemonDetailPage() {
   if (error || !pokemon) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg">
-          <p className="text-red-700">{error || 'Pokemon not found'}</p>
+        <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg">
+          <p className="text-red-700 dark:text-red-400">{error || 'Pokemon not found'}</p>
         </div>
         <Link to="/" className="text-blue-500 hover:text-blue-700">← Back to Home</Link>
       </div>
@@ -481,38 +542,41 @@ function PokemonDetailPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <Link to="/" className="inline-flex items-center text-blue-500 hover:text-blue-700 mb-4">
           <ArrowLeft size={20} className="mr-2" />
           Back to Home
         </Link>
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">{pokemon.name}</h1>
-              <span className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm capitalize">
+        <div className="card">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">{pokemon.name}</h1>
+              <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm capitalize text-gray-700 dark:text-gray-300">
                 {getTypeEmoji(pokemon.type)} {pokemon.type}
               </span>
             </div>
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-200 rounded-full flex items-center justify-center">
-              <span className="text-4xl">{getTypeEmoji(pokemon.type)}</span>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-100 to-purple-200 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center shrink-0">
+              <span className="text-3xl sm:text-4xl">{getTypeEmoji(pokemon.type)}</span>
             </div>
           </div>
           
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-lg font-medium text-gray-700">Level {pokemon.level}</span>
-              <span className="text-sm text-gray-500">Stage {pokemon.evolution_stage}</span>
+              <span className="text-lg font-medium text-gray-700 dark:text-gray-300">Level {pokemon.level}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Stage {pokemon.evolution_stage}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="progress mb-1">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300"
+                className="progress-fill"
                 style={{ width: `${pokemon.experience}%` }}
               />
             </div>
-            <span className="text-sm text-gray-500">{pokemon.experience.toFixed(0)}/100 EXP</span>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{pokemon.experience.toFixed(0)}/100 EXP</span>
+              {pokemon.experience >= 100 && <span className="text-sm text-green-500 font-semibold">MAX!</span>}
+            </div>
           </div>
         </div>
       </div>
@@ -525,12 +589,12 @@ function PokemonDetailPage() {
       )}
 
       {/* Moves Section */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">Tasks (Moves)</h2>
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">Tasks (Moves)</h2>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:shadow-lg transform transition-all duration-200 hover:scale-105"
+            className="btn-primary w-full sm:w-auto"
           >
             Add Task
           </button>
@@ -538,31 +602,31 @@ function PokemonDetailPage() {
 
         {/* Add Move Form */}
         {showAddForm && (
-          <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
-            <h3 className="text-lg font-semibold mb-4">Add New Task</h3>
+          <div className="card mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Add New Task</h3>
             <form onSubmit={handleAddMove} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Task Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Name</label>
                 <input
                   type="text"
                   name="name"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input"
                   placeholder="e.g., Complete project documentation"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
                 <textarea
                   name="description"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="textarea"
                   placeholder="Additional details about the task..."
                 />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Priority Level (1-100)</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority Level (1-100)</label>
                   <button
                     type="button"
                     onClick={handleSuggestPower}
@@ -580,7 +644,7 @@ function PokemonDetailPage() {
                   max="100"
                   defaultValue="50"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 />
               </div>
 
@@ -621,17 +685,17 @@ function PokemonDetailPage() {
                   </p>
                 </div>
               )}
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className="btn-primary flex-1"
                 >
                   Add Task
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="btn-secondary flex-1"
                 >
                   Cancel
                 </button>
@@ -642,24 +706,24 @@ function PokemonDetailPage() {
 
         {/* Moves List */}
         {moves.length === 0 ? (
-          <div className="bg-white rounded-2xl p-6 shadow-lg text-center">
-            <p className="text-gray-600 mb-4">No tasks yet for {pokemon.name}</p>
-            <p className="text-sm text-gray-500">Add your first task to get started!</p>
+          <div className="card text-center">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">No tasks yet for {pokemon.name}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">Add your first task to get started!</p>
           </div>
         ) : (
           <div className="space-y-4">
             {moves.map((move) => (
               <div
                 key={move.id}
-                className={`bg-white rounded-2xl p-6 shadow-lg transition-all duration-200 ${
-                  move.is_completed ? 'opacity-75 bg-gray-50' : 'hover:shadow-xl'
+                className={`card transition-colors duration-200 ${
+                  move.is_completed ? 'opacity-75' : ''
                 }`}
               >
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div className="flex-1">
                     <div className="flex items-center mb-2">
-                      <h3 className={`text-lg font-semibold ${
-                        move.is_completed ? 'line-through text-gray-500' : 'text-gray-800'
+                      <h3 className={`text-base sm:text-lg font-semibold ${
+                        move.is_completed ? 'line-through text-gray-500 dark:text-gray-600' : 'text-gray-800 dark:text-gray-100'
                       }`}>
                         {move.name}
                       </h3>
@@ -669,27 +733,27 @@ function PokemonDetailPage() {
                     </div>
                     {move.description && (
                       <p className={`text-sm mb-3 ${
-                        move.is_completed ? 'text-gray-400' : 'text-gray-600'
+                        move.is_completed ? 'text-gray-400 dark:text-gray-600' : 'text-gray-600 dark:text-gray-400'
                       }`}>
                         {move.description}
                       </p>
                     )}
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm font-medium text-blue-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                         Priority: {move.power}
                       </span>
                       {move.is_completed && move.completed_at && (
-                        <span className="text-xs text-green-600">
+                        <span className="text-xs text-green-600 dark:text-green-400">
                           Completed: {new Date(move.completed_at).toLocaleDateString()}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex space-x-2 ml-4">
+                  <div className="flex space-x-2 shrink-0">
                     {!move.is_completed ? (
                       <button
                         onClick={() => handleCompleteMove(move.id)}
-                        className="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors"
+                        className="p-2 bg-green-100 dark:bg-green-900/20 hover:bg-green-200 dark:hover:bg-green-900/40 text-green-700 dark:text-green-400 rounded-lg transition-colors"
                         title="Mark as completed"
                       >
                         <Check size={18} />
@@ -697,7 +761,7 @@ function PokemonDetailPage() {
                     ) : null}
                     <button
                       onClick={() => handleDeleteMove(move.id)}
-                      className="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+                      className="p-2 bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 rounded-lg transition-colors"
                       title="Delete task"
                     >
                       <X size={18} />
@@ -716,7 +780,7 @@ function PokemonDetailPage() {
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/pokemon/:id" element={<PokemonDetailPage />} />

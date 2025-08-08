@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { getSystemPreference, applyTheme, saveTheme, getStoredTheme, type Theme } from '../utils/theme';
 
 export type ModalType = 'createPokemon' | 'createMove' | 'editPokemon' | 'editMove' | 'confirmDelete' | null;
 
@@ -34,7 +35,7 @@ interface UIStore {
   activeTab: string;
   
   // Theme
-  darkMode: boolean;
+  theme: Theme;
   
   // Actions - Modal
   openModal: (type: ModalType, data?: Record<string, unknown>) => void;
@@ -59,8 +60,11 @@ interface UIStore {
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   setActiveTab: (tab: string) => void;
+  setTheme: (theme: Theme) => void;
   toggleDarkMode: () => void;
-  setDarkMode: (dark: boolean) => void;
+  
+  // Computed
+  isDarkMode: () => boolean;
   
   // Selectors
   isLoading: (taskId?: string) => boolean;
@@ -92,7 +96,7 @@ export const useUIStore = create<UIStore>()(
       formErrors: new Map(),
       sidebarOpen: true,
       activeTab: 'pokemon',
-      darkMode: false,
+      theme: 'system',
       
       // Modal actions
       openModal: (type, data = null) => {
@@ -201,37 +205,34 @@ export const useUIStore = create<UIStore>()(
         });
       },
       
-      toggleDarkMode: () => {
-        const newDarkMode = !get().darkMode;
+      setTheme: (theme) => {
         set((state) => {
-          state.darkMode = newDarkMode;
+          state.theme = theme;
         });
         
-        // Apply to document
-        if (newDarkMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-        
-        // Save preference
-        localStorage.setItem('darkMode', newDarkMode.toString());
+        applyTheme(theme);
+        saveTheme(theme);
       },
       
-      setDarkMode: (dark) => {
-        set((state) => {
-          state.darkMode = dark;
-        });
+      toggleDarkMode: () => {
+        const currentTheme = get().theme;
+        const isDark = get().isDarkMode();
         
-        // Apply to document
-        if (dark) {
-          document.documentElement.classList.add('dark');
+        // If currently using system preference, switch to explicit light/dark
+        if (currentTheme === 'system') {
+          const newTheme = isDark ? 'light' : 'dark';
+          get().setTheme(newTheme);
         } else {
-          document.documentElement.classList.remove('dark');
+          // Switch between light and dark
+          const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+          get().setTheme(newTheme);
         }
-        
-        // Save preference
-        localStorage.setItem('darkMode', dark.toString());
+      },
+      
+      // Computed
+      isDarkMode: () => {
+        const theme = get().theme;
+        return theme === 'dark' || (theme === 'system' && getSystemPreference() === 'dark');
       },
       
       // Selectors
@@ -254,10 +255,25 @@ export const useUIStore = create<UIStore>()(
   )
 );
 
-// Initialize dark mode from localStorage
+// Initialize theme from localStorage or system preference
 if (typeof window !== 'undefined') {
-  const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-  if (savedDarkMode) {
-    useUIStore.getState().setDarkMode(true);
+  const storedTheme = getStoredTheme();
+  const store = useUIStore.getState();
+  
+  store.setTheme(storedTheme);
+  
+  // Listen for system preference changes and update if using system theme
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const handleSystemChange = () => {
+    if (useUIStore.getState().theme === 'system') {
+      applyTheme('system');
+    }
+  };
+  
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', handleSystemChange);
+  } else {
+    // @ts-ignore - fallback for older browsers
+    mediaQuery.addListener(handleSystemChange);
   }
 }

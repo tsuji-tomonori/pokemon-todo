@@ -37,12 +37,6 @@ export default {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-slow': 'pulse 3s infinite',
         'spin-slow': 'spin 3s linear infinite',
-      },
-      boxShadow: {
-        'neo-light': '-8px -8px 16px #FFFFFF, 8px 8px 16px #D1D5DB',
-        'neo-dark': '-8px -8px 16px #2A2D35, 8px 8px 16px #0A0B0F',
-        'neo-light-inset': 'inset -8px -8px 16px #FFFFFF, inset 8px 8px 16px #D1D5DB',
-        'neo-dark-inset': 'inset -8px -8px 16px #2A2D35, inset 8px 8px 16px #0A0B0F',
       }
     },
   },
