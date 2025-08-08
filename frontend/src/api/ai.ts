@@ -34,16 +34,14 @@ export const aiApi = {
 
   // 簡易威力提案
   suggestPower: async (moveName: string, moveDescription?: string): Promise<PowerCalculationResponse> => {
-    const params = new URLSearchParams({
-      move_name: moveName,
-    });
-    if (moveDescription) {
-      params.append('move_description', moveDescription);
-    }
-
-    const response = await fetch(`http://localhost:8000/api/v1/ai/suggest-power?${params}`, {
+    const response = await fetch('http://localhost:8000/api/v1/ai/suggest-power', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        move_name: moveName,
+        move_description: moveDescription,
+        difficulty_level: 'medium'
+      }),
     });
     if (!response.ok) throw new Error('Failed to suggest power');
     return response.json();

@@ -122,7 +122,7 @@ function HomePage() {
       setError(null);
       const data = await pokemonApi.getAll();
       setPokemon(data);
-      console.log('Fetched Pokemon:', data);
+      // Fetched Pokemon successfully
     } catch (err) {
       setError('Failed to load Pokemon');
       console.error('Error fetching Pokemon:', err);
@@ -147,7 +147,7 @@ function HomePage() {
       setShowCreateForm(false);
       // Reset form
       (event.target as HTMLFormElement).reset();
-      console.log('Created Pokemon:', newPokemon);
+      // Pokemon created successfully
     } catch (err) {
       setError('Failed to create Pokemon');
       console.error('Error creating Pokemon:', err);
@@ -685,10 +685,8 @@ function PokemonDetailPage() {
 }
 
 function App() {
-  console.log('App component is rendering with Tailwind...')
-  
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Routes>
           <Route path="/" element={<HomePage />} />
