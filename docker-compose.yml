@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: pokemon-todo-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-pokemon}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pokemon123}
+      POSTGRES_DB: ${DB_NAME:-pokemon_todo}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pokemon}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pokemon-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pokemon-todo-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-pokemon}:${DB_PASSWORD:-pokemon123}@postgres:5432/${DB_NAME:-pokemon_todo}
+      LM_STUDIO_URL: ${LM_STUDIO_URL:-http://host.docker.internal:1234}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - pokemon-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pokemon-todo-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+    networks:
+      - pokemon-network
+
+networks:
+  pokemon-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
