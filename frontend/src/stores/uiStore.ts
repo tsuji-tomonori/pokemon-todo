@@ -17,7 +17,7 @@ interface Toast {
 interface UIStore {
   // Modal state
   modalType: ModalType;
-  modalData: any;
+  modalData: Record<string, unknown>;
   
   // Toast notifications
   toasts: Toast[];
@@ -37,7 +37,7 @@ interface UIStore {
   darkMode: boolean;
   
   // Actions - Modal
-  openModal: (type: ModalType, data?: any) => void;
+  openModal: (type: ModalType, data?: Record<string, unknown>) => void;
   closeModal: () => void;
   
   // Actions - Toast

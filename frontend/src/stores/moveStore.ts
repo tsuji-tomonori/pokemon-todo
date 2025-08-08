@@ -366,7 +366,7 @@ export const useMoveStore = create<MoveStore>()(
           lastFetch: Array.from(state.lastFetch.entries()),
         }),
         // Custom merge function to handle Map deserialization
-        merge: (persistedState: any, currentState: any) => {
+        merge: (persistedState: Partial<MoveStore>, currentState: MoveStore) => {
           const moves = new Map(persistedState?.moves || []);
           const lastFetch = new Map(persistedState?.lastFetch || []);
           return {

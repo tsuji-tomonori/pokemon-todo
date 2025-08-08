@@ -1,7 +1,7 @@
 import { Move } from '../../types/move';
 import Card from '../common/Card';
 import ProgressBar from '../common/ProgressBar';
-import { CheckCircle, Circle, Trash, PencilSimple, Zap } from '@phosphor-icons/react';
+import { CheckCircle, Circle, Trash, PencilSimple, Lightning } from '@phosphor-icons/react';
 import { clsx } from 'clsx';
 
 interface MoveCardProps {
@@ -76,7 +76,7 @@ const MoveCard = ({ move, onComplete, onEdit, onDelete }: MoveCardProps) => {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Zap size={16} className="text-yellow-500" />
+            <Lightning size={16} className="text-yellow-500" />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Power
             </span>
